@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="WebHub"/>
+<meta name="theme-color" media="(prefers-color-scheme:dark)" content="#111111"/>
+<meta name="theme-color" media="(prefers-color-scheme:light)" content="#f2f2f7"/>
+<title>WebHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap"/>
+<style>
+:root{
+  --bg:#111111;--bg2:#1c1c1e;--bg3:#2c2c2e;
+  --glass:rgba(28,28,30,0.75);
+  --glass-b:rgba(255,255,255,0.09);
+  --glass-l:rgba(255,255,255,0.055);
+  --text:#ffffff;--text2:rgba(255,255,255,0.52);--text3:rgba(255,255,255,0.22);
+  --accent:#0a84ff;--accent-g:rgba(10,132,255,0.16);
+  --sep:rgba(255,255,255,0.075);
+  --open-bg:rgba(255,255,255,0.09);--open-c:rgba(255,255,255,0.78);
+  --pill-c:rgba(255,255,255,0.38);--pill-ac:#ffffff;--pill-abg:rgba(255,255,255,0.13);
+  --nav:rgba(14,14,16,0.88);
+  --icon-bg:#2a2a2c;
+  --safe-t:env(safe-area-inset-top,44px);
+  --safe-b:env(safe-area-inset-bottom,34px);
+}
+@media(prefers-color-scheme:light){
+  :root{
+    --bg:#f2f2f7;--bg2:#ffffff;--bg3:#e5e5ea;
+    --glass:rgba(255,255,255,0.75);
+    --glass-b:rgba(0,0,0,0.07);
+    --glass-l:rgba(0,0,0,0.038);
+    --text:#000000;--text2:rgba(0,0,0,0.48);--text3:rgba(0,0,0,0.20);
+    --accent:#007aff;--accent-g:rgba(0,122,255,0.11);
+    --sep:rgba(0,0,0,0.065);
+    --open-bg:rgba(0,0,0,0.055);--open-c:rgba(0,0,0,0.62);
+    --pill-c:rgba(0,0,0,0.35);--pill-ac:#000000;--pill-abg:rgba(0,0,0,0.09);
+    --nav:rgba(242,242,247,0.90);
+    --icon-bg:#e5e5ea;
+  }
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overscroll-behavior:none;background:var(--bg);color:var(--text);font-family:'Figtree',sans-serif;-webkit-font-smoothing:antialiased;}
+body{overflow:hidden;}
+
+/* ── Screens ── */
+.screen{
+  position:fixed;inset:0;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding-top:calc(var(--safe-t) + 10px);
+  padding-bottom:calc(var(--safe-b) + 72px);
+  transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s;
+  will-change:transform;
+}
+.screen.off{transform:translateX(100%);opacity:0;pointer-events:none;}
+
+/* ── HOME ── */
+.home-header{display:flex;align-items:center;justify-content:space-between;padding:4px 18px 12px;}
+.app-brand{display:flex;align-items:center;gap:9px;}
+.app-icon-logo{
+  width:34px;height:34px;border-radius:9px;
+  background:var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  /* swap with: background-image:url(icon.png);background-size:cover; */
+  font-size:16px;font-weight:800;color:#fff;
+}
+.app-brand-name{font-size:19px;font-weight:700;letter-spacing:-.3px;}
+
+/* Search tap target */
+.search-tap{
+  display:flex;align-items:center;gap:9px;
+  background:var(--glass-l);border:1px solid var(--sep);
+  border-radius:13px;padding:11px 14px;
+  margin:0 14px 13px;cursor:pointer;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.search-tap-txt{font-size:15px;color:var(--text2);}
+
+/* Category pills */
+.cats{display:flex;gap:7px;padding:0 14px 14px;overflow-x:auto;scrollbar-width:none;}
+.cats::-webkit-scrollbar{display:none;}
+.cpill{
+  flex-shrink:0;border-radius:20px;padding:6px 14px;
+  font-size:13px;font-weight:500;color:var(--pill-c);
+  background:var(--glass-l);border:1px solid var(--sep);
+  cursor:pointer;white-space:nowrap;transition:all .16s;
+}
+.cpill.on{background:var(--pill-abg);border-color:var(--glass-b);color:var(--pill-ac);font-weight:600;}
+
+/* Section heading */
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:6px 18px 2px;}
+.sec-title{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);}
+.sec-action{font-size:12px;color:var(--accent);font-weight:500;cursor:pointer;padding:4px;}
+
+/* App list */
+.app-list{padding:0 10px;}
+.app-row{
+  display:flex;align-items:center;gap:13px;
+  padding:10px 10px;border-radius:15px;cursor:pointer;
+  transition:background .12s,transform .1s;
+}
+.app-row:active{background:var(--glass-l);transform:scale(.985);}
+.aicon{
+  width:56px;height:56px;flex-shrink:0;border-radius:14px;
+  background:var(--icon-bg);overflow:hidden;position:relative;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.22);
+}
+.aicon img{width:100%;height:100%;object-fit:cover;border-radius:14px;}
+.aicon-fb{
+  position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  font-size:22px;font-weight:700;color:#fff;border-radius:14px;
+}
+.ainfo{flex:1;min-width:0;}
+.aname{font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.adesc{font-size:12px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.open-btn{
+  flex-shrink:0;background:var(--open-bg);border:1px solid var(--sep);
+  border-radius:20px;padding:7px 15px;
+  font-size:14px;font-weight:600;color:var(--open-c);
+  font-family:'Figtree',sans-serif;cursor:pointer;transition:transform .1s,background .12s;
+}
+.open-btn:active{transform:scale(.91);}
+
+.empty{text-align:center;padding:50px 20px;color:var(--text2);font-size:15px;}
+
+/* ── SEARCH SCREEN ── */
+.srch-top{padding:0 14px 8px;display:flex;align-items:center;gap:10px;}
+.srch-box-wrap{flex:1;position:relative;}
+.srch-box{
+  width:100%;background:var(--glass-l);border:1px solid var(--sep);
+  border-radius:13px;padding:11px 14px 11px 38px;
+  color:var(--text);font-size:15px;font-family:'Figtree',sans-serif;outline:none;
+}
+.srch-box::placeholder{color:var(--text2);}
+.srch-box:focus{border-color:rgba(10,132,255,.4);}
+.srch-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:.35;pointer-events:none;}
+.srch-cancel{font-size:15px;font-weight:500;color:var(--accent);cursor:pointer;white-space:nowrap;border:none;background:none;font-family:'Figtree',sans-serif;padding:4px;}
+.eng-row{display:flex;gap:7px;padding:0 14px 10px;overflow-x:auto;scrollbar-width:none;}
+.eng-row::-webkit-scrollbar{display:none;}
+.epill{
+  flex-shrink:0;border-radius:20px;padding:5px 13px;
+  font-size:12px;font-weight:500;color:var(--pill-c);
+  background:var(--glass-l);border:1px solid var(--sep);
+  cursor:pointer;white-space:nowrap;transition:all .15s;
+}
+.epill.on{background:var(--accent-g);border-color:var(--accent);color:var(--accent);font-weight:600;}
+.srch-results{padding:0 10px;}
+.ws-row{
+  display:flex;align-items:center;gap:12px;padding:12px 10px;
+  border-radius:14px;cursor:pointer;transition:background .12s;
+  border-bottom:1px solid var(--sep);margin-bottom:4px;
+}
+.ws-row:active{background:var(--glass-l);}
+.ws-ico{width:44px;height:44px;border-radius:11px;background:var(--accent-g);border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ws-lbl{font-size:15px;font-weight:600;}
+.ws-q{font-size:12px;color:var(--accent);}
+.sr-row{display:flex;align-items:center;gap:12px;padding:10px 10px;border-radius:14px;cursor:pointer;transition:background .12s;}
+.sr-row:active{background:var(--glass-l);}
+.sr-ico{width:44px;height:44px;border-radius:11px;background:var(--icon-bg);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.sr-ico img{width:100%;height:100%;object-fit:cover;border-radius:11px;}
+.sr-name{font-size:15px;font-weight:600;}
+.sr-url{font-size:12px;color:var(--text2);}
+
+/* ── GROUPS ── */
+.page-head{padding:2px 18px 16px;}
+.page-title{font-size:28px;font-weight:700;letter-spacing:-.5px;}
+.page-sub{font-size:13px;color:var(--text2);margin-top:3px;}
+.folder-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 14px;}
+.folder-card{
+  background:var(--glass-l);border:1px solid var(--sep);
+  border-radius:20px;padding:15px;cursor:pointer;
+  transition:transform .14s,background .12s;
+}
+.folder-card:active{transform:scale(.96);background:var(--glass);}
+.folder-preview{
+  display:grid;grid-template-columns:1fr 1fr;gap:4px;
+  width:62px;height:62px;margin-bottom:10px;
+}
+.fp-img{width:27px;height:27px;border-radius:7px;object-fit:cover;background:var(--bg3);}
+.fp-empty{width:27px;height:27px;border-radius:7px;background:var(--bg3);}
+.folder-lbl{font-size:14px;font-weight:700;}
+.folder-cnt{font-size:12px;color:var(--text2);margin-top:2px;}
+.groups-empty{text-align:center;padding:40px 20px;color:var(--text2);font-size:14px;grid-column:1/-1;}
+.new-grp-btn{
+  display:flex;align-items:center;gap:10px;
+  margin:14px 14px 0;
+  background:var(--glass-l);border:1px solid var(--sep);
+  border-radius:15px;padding:14px 16px;cursor:pointer;transition:background .12s;
+}
+.new-grp-btn:active{background:var(--glass);}
+.new-grp-btn span{font-size:15px;font-weight:500;color:var(--text2);}
+
+/* ── SETTINGS ── */
+.stg-head{padding:2px 18px 22px;}
+.stg-title{font-size:28px;font-weight:700;letter-spacing:-.5px;}
+.stg-sec{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);padding:0 18px 8px;}
+.stg-card{background:var(--glass-l);border:1px solid var(--sep);border-radius:16px;margin:0 12px 22px;overflow:hidden;}
+.stg-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;border-bottom:1px solid var(--sep);cursor:pointer;transition:background .12s;
+}
+.stg-row:last-child{border-bottom:none;}
+.stg-row:active{background:var(--glass-l);}
+.stg-row-lbl{font-size:15px;font-weight:500;}
+.stg-row-val{font-size:14px;color:var(--accent);font-weight:500;}
+
+/* ── Bottom Nav ── */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;z-index:60;
+  background:var(--nav);
+  backdrop-filter:blur(28px) saturate(1.9);
+  -webkit-backdrop-filter:blur(28px) saturate(1.9);
+  border-top:1px solid var(--sep);
+  padding:8px 0 calc(8px + var(--safe-b));
+  display:flex;justify-content:space-around;
+}
+.nbtn{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  border:none;background:none;font-family:'Figtree',sans-serif;
+  color:var(--text2);cursor:pointer;padding:4px 18px;transition:color .15s;
+}
+.nbtn.on{color:var(--accent);}
+.nbtn svg{transition:transform .22s cubic-bezier(.34,1.56,.64,1);}
+.nbtn.on svg{transform:scale(1.15);}
+.nbtn-lbl{font-size:10px;font-weight:500;}
+
+/* ── Browser Overlay ── */
+#brow{
+  position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;background:var(--bg);
+  transform:translateY(100%);
+  transition:transform .4s cubic-bezier(.32,.72,0,1);
+}
+#brow.open{transform:translateY(0);}
+
+.brow-bar{
+  flex-shrink:0;
+  padding:calc(var(--safe-t) + 4px) 12px 10px;
+  background:var(--glass);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border-bottom:1px solid var(--sep);
+  display:flex;align-items:center;gap:9px;
+}
+.brow-btn{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--glass-l);border:1px solid var(--sep);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:background .12s,transform .1s;
+}
+.brow-btn:active{transform:scale(.88);background:var(--glass);}
+.brow-url{
+  flex:1;background:var(--glass-l);border:1px solid var(--sep);
+  border-radius:10px;padding:8px 12px;
+  font-size:13px;color:var(--text2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.brow-frame{flex:1;position:relative;overflow:hidden;}
+.brow-iframe{width:100%;height:100%;border:none;background:#fff;}
+.brow-bar-load{
+  position:absolute;bottom:0;left:0;height:2px;
+  background:var(--accent);width:0%;
+  transition:width 1.4s ease;
+}
+
+/* Blocked state */
+.brow-blocked{
+  display:none;position:absolute;inset:0;
+  background:var(--bg);
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:32px;text-align:center;
+}
+.brow-blocked.show{display:flex;}
+.bb-icon{font-size:50px;}
+.bb-title{font-size:19px;font-weight:700;}
+.bb-desc{font-size:14px;color:var(--text2);line-height:1.55;max-width:280px;}
+.bb-open{
+  background:var(--accent);color:#fff;border:none;
+  border-radius:14px;padding:14px 28px;
+  font-size:15px;font-weight:700;font-family:'Figtree',sans-serif;
+  cursor:pointer;margin-top:6px;transition:opacity .15s;
+}
+.bb-open:active{opacity:.75;}
+
+/* Swipe back edge hint */
+.swipe-edge{
+  position:absolute;left:0;top:50%;transform:translateY(-50%);
+  width:4px;border-radius:0 4px 4px 0;
+  background:var(--accent);opacity:0;height:50px;
+  pointer-events:none;z-index:5;
+  transition:opacity .15s,height .15s;
+}
+
+/* ── Action Sheet ── */
+.sheet-ov{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.52);
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  opacity:0;pointer-events:none;transition:opacity .22s;
+  display:flex;align-items:flex-end;
+}
+.sheet-ov.open{opacity:1;pointer-events:all;}
+.sheet{
+  width:100%;background:var(--bg2);border-radius:22px 22px 0 0;
+  padding:0 0 calc(14px + var(--safe-b));
+  transform:translateY(24px);transition:transform .28s cubic-bezier(.32,.72,0,1);
+}
+.sheet-ov.open .sheet{transform:translateY(0);}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--text3);margin:13px auto 4px;}
+.sheet-title{font-size:17px;font-weight:700;padding:10px 20px 14px;color:var(--text);}
+.sheet-acts{display:flex;flex-direction:column;margin:0 12px;}
+.sact{
+  display:flex;align-items:center;gap:13px;
+  padding:15px 16px;border-bottom:1px solid var(--sep);
+  cursor:pointer;font-size:16px;font-weight:500;color:var(--text);
+  transition:background .12s;
+}
+.sact:first-child{border-radius:15px 15px 0 0;}
+.sact:last-child{border-bottom:none;border-radius:0 0 15px 15px;}
+.sact:active{background:var(--glass-l);}
+.sact.danger{color:#ff453a;}
+.sact svg{opacity:.55;flex-shrink:0;}
+.sheet-cancel{
+  margin:10px 12px 0;
+  background:var(--glass-l);border:1px solid var(--sep);
+  border-radius:15px;padding:16px;
+  text-align:center;font-size:16px;font-weight:700;
+  cursor:pointer;color:var(--text);transition:background .12s;
+}
+.sheet-cancel:active{background:var(--glass);}
+
+/* ── Name Modal ── */
+.nm-ov{
+  position:fixed;inset:0;z-index:400;
+  background:rgba(0,0,0,.62);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.nm-ov.open{opacity:1;pointer-events:all;}
+.nm-box{
+  width:100%;max-width:310px;
+  background:var(--bg2);border-radius:20px;padding:22px 18px;
+  transform:scale(.9);transition:transform .24s cubic-bezier(.34,1.56,.64,1);
+}
+.nm-ov.open .nm-box{transform:scale(1);}
+.nm-title{font-size:17px;font-weight:700;text-align:center;margin-bottom:14px;}
+.nm-inp{
+  width:100%;background:var(--glass-l);border:1px solid var(--sep);
+  border-radius:12px;padding:12px 13px;
+  color:var(--text);font-size:15px;font-family:'Figtree',sans-serif;
+  outline:none;margin-bottom:12px;
+}
+.nm-inp:focus{border-color:var(--accent);}
+.nm-inp::placeholder{color:var(--text2);}
+.nm-btns{display:flex;gap:8px;}
+.nm-btns button{
+  flex:1;padding:12px;border-radius:12px;border:none;
+  font-size:15px;font-weight:700;font-family:'Figtree',sans-serif;cursor:pointer;transition:opacity .15s;
+}
+.nm-cc{background:var(--glass-l);color:var(--text);}
+.nm-sv{background:var(--accent);color:#fff;}
+.nm-cc:active,.nm-sv:active{opacity:.7;}
+
+/* ── Toast ── */
+.toast{
+  position:fixed;bottom:calc(var(--safe-b) + 78px);
+  left:50%;transform:translateX(-50%) translateY(16px);
+  background:rgba(46,46,50,.96);color:#fff;
+  font-size:14px;font-weight:500;padding:10px 18px;
+  border-radius:20px;opacity:0;pointer-events:none;
+  transition:opacity .2s,transform .2s;z-index:999;white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="homeScreen" class="screen">
+  <div class="home-header">
+    <div class="app-brand">
+      <div class="app-icon-logo">W</div>
+      <span class="app-brand-name">WebHub</span>
+    </div>
+  </div>
+  <div class="search-tap" id="openSearch">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="opacity:.38"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <span class="search-tap-txt">Search apps...</span>
+  </div>
+  <div class="cats" id="homeCats">
+    <div class="cpill on" data-cat="all">All</div>
+    <div class="cpill" data-cat="ai">AI</div>
+    <div class="cpill" data-cat="social">Social</div>
+    <div class="cpill" data-cat="productivity">Work</div>
+    <div class="cpill" data-cat="entertainment">Media</div>
+    <div class="cpill" data-cat="search">Search</div>
+    <div class="cpill" data-cat="dev">Dev</div>
+  </div>
+  <div id="homeList"></div>
+  <div class="empty" id="homeEmpty" style="display:none">No apps found</div>
+</div>
+
+<!-- SEARCH -->
+<div id="searchScreen" class="screen off">
+  <div class="srch-top">
+    <div class="srch-box-wrap">
+      <svg class="srch-ico" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input class="srch-box" id="srchInput" type="search" placeholder="Search or enter URL..." autocomplete="off" autocorrect="off" autocapitalize="off"/>
+    </div>
+    <button class="srch-cancel" id="srchCancel">Cancel</button>
+  </div>
+  <div class="eng-row" id="engRow"></div>
+  <div class="srch-results" id="srchResults"></div>
+</div>
+
+<!-- GROUPS -->
+<div id="groupsScreen" class="screen off">
+  <div class="page-head">
+    <div class="page-title">Groups</div>
+    <div class="page-sub">Long-press any app to add to a group</div>
+  </div>
+  <div class="folder-grid" id="folderGrid"></div>
+  <div class="new-grp-btn" id="newGrpBtn">
+    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    <span>New Group</span>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settingsScreen" class="screen off">
+  <div class="stg-head"><div class="stg-title">Settings</div></div>
+  <div class="stg-sec">Default Search Engine</div>
+  <div class="stg-card" id="engCard"></div>
+  <div class="stg-sec">Manage</div>
+  <div class="stg-card">
+    <div class="stg-row" id="addAppRow"><span class="stg-row-lbl">Add Custom App</span><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+    <div class="stg-row" id="clearRecentRow"><span class="stg-row-lbl">Clear Recent History</span><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></div>
+  </div>
+  <div class="stg-sec">About</div>
+  <div class="stg-card">
+    <div class="stg-row" style="cursor:default"><span class="stg-row-lbl">WebHub</span><span class="stg-row-val">v1.0</span></div>
+    <div class="stg-row" style="cursor:default"><span class="stg-row-lbl">Location Access</span><span class="stg-row-val" style="color:#30d158">Never</span></div>
+  </div>
+</div>
+
+<!-- Bottom Nav -->
+<nav class="bnav">
+  <button class="nbtn on" data-s="homeScreen">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <span class="nbtn-lbl">Home</span>
+  </button>
+  <button class="nbtn" data-s="searchScreen">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    <span class="nbtn-lbl">Search</span>
+  </button>
+  <button class="nbtn" data-s="groupsScreen">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span class="nbtn-lbl">Groups</span>
+  </button>
+  <button class="nbtn" data-s="settingsScreen">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span class="nbtn-lbl">Settings</span>
+  </button>
+</nav>
+
+<!-- Browser Overlay -->
+<div id="brow">
+  <div class="brow-bar">
+    <div class="brow-btn" id="browBack">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    </div>
+    <div class="brow-url" id="browUrl">Loading...</div>
+    <div class="brow-btn" id="browClose">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </div>
+    <div class="brow-bar-load" id="browLoad"></div>
+  </div>
+  <div class="brow-frame" id="browFrame">
+    <div class="swipe-edge" id="swipeEdge"></div>
+    <iframe class="brow-iframe" id="browIframe" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"></iframe>
+    <div class="brow-blocked" id="browBlocked">
+      <div class="bb-icon">🔒</div>
+      <div class="bb-title">Can't open inside app</div>
+      <div class="bb-desc">This site blocks in-app embedding. Tap below to open it in your browser.</div>
+      <button class="bb-open" id="bbOpen">Open in Browser</button>
+    </div>
+  </div>
+</div>
+
+<!-- App Action Sheet -->
+<div class="sheet-ov" id="appSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheetTitle"></div>
+    <div class="sheet-acts" id="sheetActs">
+      <div class="sact" id="sOpen">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open
+      </div>
+      <div class="sact" id="sGroup">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Add to Group
+      </div>
+      <div class="sact danger" id="sRemove" style="display:none">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Remove App
+      </div>
+    </div>
+    <div class="sheet-cancel" id="sheetClose">Cancel</div>
+  </div>
+</div>
+
+<!-- Group Picker Sheet -->
+<div class="sheet-ov" id="grpSheet">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Add to Group</div>
+    <div class="sheet-acts" id="grpActs"></div>
+    <div class="sheet-cancel" id="grpClose">Cancel</div>
+  </div>
+</div>
+
+<!-- Name Modal -->
+<div class="nm-ov" id="nmOv">
+  <div class="nm-box">
+    <div class="nm-title" id="nmTitle">Enter Name</div>
+    <input class="nm-inp" id="nmInp" type="text" placeholder=""/>
+    <div class="nm-btns">
+      <button class="nm-cc" id="nmCancel">Cancel</button>
+      <button class="nm-sv" id="nmSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const BASE = [
+  {id:'chatgpt',    name:'ChatGPT',      desc:'AI by OpenAI',                url:'https://chatgpt.com',              cat:'ai',            color:'#10a37f'},
+  {id:'claude',     name:'Claude',       desc:'AI by Anthropic',             url:'https://claude.ai',                cat:'ai',            color:'#c97b4b'},
+  {id:'gemini',     name:'Gemini',       desc:'AI by Google',                url:'https://gemini.google.com',        cat:'ai',            color:'#4285f4'},
+  {id:'kimi',       name:'Kimi',         desc:'AI by Moonshot',              url:'https://kimi.ai',                  cat:'ai',            color:'#6c6cff'},
+  {id:'arena',      name:'AI Arena',     desc:'Compare AI models',           url:'https://lmarena.ai',               cat:'ai',            color:'#5b6cf9'},
+  {id:'perplexity', name:'Perplexity',   desc:'AI-powered search',           url:'https://perplexity.ai',            cat:'ai',            color:'#1fb8cd'},
+  {id:'deepseek',   name:'DeepSeek',     desc:'AI chat by DeepSeek',         url:'https://chat.deepseek.com',        cat:'ai',            color:'#0e6fff'},
+  {id:'grok',       name:'Grok',         desc:'AI by xAI',                   url:'https://grok.com',                 cat:'ai',            color:'#888'},
+  {id:'mistral',    name:'Le Chat',      desc:'AI by Mistral',               url:'https://chat.mistral.ai',          cat:'ai',            color:'#ff6b35'},
+  {id:'copilot',    name:'Copilot',      desc:'AI by Microsoft',             url:'https://copilot.microsoft.com',    cat:'ai',            color:'#0078d4'},
+  {id:'facebook',   name:'Facebook',     desc:'Connect with friends',        url:'https://facebook.com',             cat:'social',        color:'#1877f2'},
+  {id:'instagram',  name:'Instagram',    desc:'Photos & Reels',              url:'https://instagram.com',            cat:'social',        color:'#e1306c'},
+  {id:'x',          name:'X',            desc:'News & conversations',        url:'https://x.com',                    cat:'social',        color:'#111'},
+  {id:'whatsapp',   name:'WhatsApp',     desc:'Messaging & calls',           url:'https://web.whatsapp.com',         cat:'social',        color:'#25d366'},
+  {id:'telegram',   name:'Telegram',     desc:'Fast & secure messaging',     url:'https://web.telegram.org',         cat:'social',        color:'#2ca5e0'},
+  {id:'linkedin',   name:'LinkedIn',     desc:'Professional network',        url:'https://linkedin.com',             cat:'social',        color:'#0a66c2'},
+  {id:'tiktok',     name:'TikTok',       desc:'Short videos',                url:'https://tiktok.com',               cat:'social',        color:'#010101'},
+  {id:'reddit',     name:'Reddit',       desc:'The front page of internet',  url:'https://reddit.com',               cat:'social',        color:'#ff4500'},
+  {id:'discord',    name:'Discord',      desc:'Gaming & communities',        url:'https://discord.com/app',          cat:'social',        color:'#5865f2'},
+  {id:'threads',    name:'Threads',      desc:'Text-based conversations',    url:'https://threads.net',              cat:'social',        color:'#101010'},
+  {id:'gmail',      name:'Gmail',        desc:'Google email',                url:'https://mail.google.com',          cat:'productivity',  color:'#ea4335'},
+  {id:'gdrive',     name:'Drive',        desc:'Cloud storage',               url:'https://drive.google.com',         cat:'productivity',  color:'#34a853'},
+  {id:'gdocs',      name:'Docs',         desc:'Google documents',            url:'https://docs.google.com',          cat:'productivity',  color:'#4285f4'},
+  {id:'notion',     name:'Notion',       desc:'Notes & project management',  url:'https://notion.so',                cat:'productivity',  color:'#191919'},
+  {id:'sheets',     name:'Sheets',       desc:'Google spreadsheets',         url:'https://sheets.google.com',        cat:'productivity',  color:'#34a853'},
+  {id:'calendar',   name:'Calendar',     desc:'Google calendar',             url:'https://calendar.google.com',      cat:'productivity',  color:'#1a73e8'},
+  {id:'slack',      name:'Slack',        desc:'Team messaging',              url:'https://app.slack.com',            cat:'productivity',  color:'#4a154b'},
+  {id:'youtube',    name:'YouTube',      desc:'Watch & share videos',        url:'https://youtube.com',              cat:'entertainment', color:'#ff0000'},
+  {id:'netflix',    name:'Netflix',      desc:'Stream movies & shows',       url:'https://netflix.com',              cat:'entertainment', color:'#e50914'},
+  {id:'spotify',    name:'Spotify',      desc:'Music streaming',             url:'https://open.spotify.com',         cat:'entertainment', color:'#1db954'},
+  {id:'twitch',     name:'Twitch',       desc:'Live streaming',              url:'https://twitch.tv',                cat:'entertainment', color:'#9146ff'},
+  {id:'google',     name:'Google',       desc:'Search the web',              url:'https://google.com',               cat:'search',        color:'#4285f4'},
+  {id:'ddg',        name:'DuckDuckGo',   desc:'Private search',              url:'https://duckduckgo.com',           cat:'search',        color:'#de5833'},
+  {id:'brave',      name:'Brave Search', desc:'Independent search',          url:'https://search.brave.com',         cat:'search',        color:'#fb542b'},
+  {id:'github',     name:'GitHub',       desc:'Code & collaboration',        url:'https://github.com',               cat:'dev',           color:'#24292f'},
+  {id:'codepen',    name:'CodePen',      desc:'Frontend playground',         url:'https://codepen.io',               cat:'dev',           color:'#222'},
+  {id:'replit',     name:'Replit',       desc:'Cloud IDE',                   url:'https://replit.com',               cat:'dev',           color:'#f26207'},
+  {id:'supabase',   name:'Supabase',     desc:'Open source Firebase',        url:'https://supabase.com',             cat:'dev',           color:'#3ecf8e'},
+  {id:'vercel',     name:'Vercel',       desc:'Deploy web projects',         url:'https://vercel.com',               cat:'dev',           color:'#222'},
+];
+
+const ENGINES = [
+  {id:'ddg',    name:'DuckDuckGo', url:'https://duckduckgo.com/?q='},
+  {id:'google', name:'Google',     url:'https://google.com/search?q='},
+  {id:'bing',   name:'Bing',       url:'https://bing.com/search?q='},
+  {id:'brave',  name:'Brave',      url:'https://search.brave.com/search?q='},
+  {id:'ecosia', name:'Ecosia',     url:'https://ecosia.org/search?q='},
+  {id:'yahoo',  name:'Yahoo',      url:'https://search.yahoo.com/search?p='},
+];
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let custom  = ls('wh_c') || [];
+let groups  = ls('wh_g') || {};
+let recent  = ls('wh_r') || [];
+let engine  = ls('wh_e') || 'ddg';
+let activeCat = 'all';
+let lpApp = null, nmCb = null, curUrl = '';
+
+const apps = () => [...BASE, ...custom];
+
+function ls(k,v){
+  try{
+    if(v===undefined) return JSON.parse(localStorage.getItem(k));
+    localStorage.setItem(k, JSON.stringify(v));
+  }catch(e){return null;}
+}
+function save(){ls('wh_c',custom);ls('wh_g',groups);ls('wh_r',recent);ls('wh_e',engine);}
+function logo(url){try{return `https://logo.clearbit.com/${new URL(url).hostname.replace(/^www\./,'')}`;}catch(e){return '';}}
+function logo2(url){try{return `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${encodeURIComponent(url)}&size=128`;}catch(e){return '';}}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ─── SCREENS ────────────────────────────────────────────────────────────────
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('off',s.id!==id));
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
+  if(id==='searchScreen') setTimeout(()=>document.getElementById('srchInput').focus(),250);
+  if(id==='groupsScreen') renderGroups();
+  if(id==='settingsScreen') renderSettings();
+  if(id==='homeScreen') renderHome();
+}
+document.querySelectorAll('.nbtn').forEach(b=>b.addEventListener('click',()=>go(b.dataset.s)));
+document.getElementById('openSearch').addEventListener('click',()=>go('searchScreen'));
+
+// ─── HOME ───────────────────────────────────────────────────────────────────
+function renderHome(){
+  const c = document.getElementById('homeList');
+  c.innerHTML='';
+  let list = apps();
+  if(activeCat!=='all') list=list.filter(a=>a.cat===activeCat);
+  const grouped = new Set(Object.values(groups).flat());
+
+  // Grouped sections
+  let hasContent = false;
+  Object.entries(groups).forEach(([gn,ids])=>{
+    const ga = list.filter(a=>ids.includes(a.id));
+    if(!ga.length) return;
+    hasContent=true;
+    const sec=document.createElement('div');
+    const head=document.createElement('div');head.className='sec-head';
+    head.innerHTML=`<span class="sec-title">${gn}</span>`;
+    const al=document.createElement('div');al.className='app-list';
+    ga.forEach(a=>al.appendChild(makeRow(a)));
+    sec.appendChild(head);sec.appendChild(al);
+    c.appendChild(sec);
+  });
+
+  // Ungrouped
+  const ung=list.filter(a=>!grouped.has(a.id));
+  if(ung.length){
+    hasContent=true;
+    const al=document.createElement('div');al.className='app-list';
+    ung.forEach(a=>al.appendChild(makeRow(a)));
+    c.appendChild(al);
+  }
+  document.getElementById('homeEmpty').style.display=hasContent?'none':'block';
+}
+
+function makeRow(app){
+  const row=document.createElement('div');row.className='app-row';
+  const isC=custom.some(a=>a.id===app.id);
+
+  // Icon
+  const iw=document.createElement('div');iw.className='aicon';
+  iw.style.background=app.color+'1a';
+  const img=document.createElement('img');
+  img.src=logo(app.url);img.alt=app.name;
+  img._tried2=false;
+  img.onerror=function(){
+    if(!this._tried2){
+      this._tried2=true;
+      this.src=logo2(app.url);
+    } else {
+      this.style.display='none';
+      const fb=iw.querySelector('.aicon-fb');
+      if(fb){fb.style.display='flex';fb.style.background=app.color;}
+    }
+  };
+  const fb=document.createElement('div');fb.className='aicon-fb';fb.textContent=app.name[0];
+  iw.appendChild(img);iw.appendChild(fb);
+
+  // Info
+  const inf=document.createElement('div');inf.className='ainfo';
+  inf.innerHTML=`<div class="aname">${app.name}</div><div class="adesc">${app.desc||app.url.replace('https://','')}</div>`;
+
+  // Open btn
+  const ob=document.createElement('button');ob.className='open-btn';ob.textContent='Open';
+  ob.addEventListener('click',e=>{e.stopPropagation();openBrow(app);});
+
+  row.appendChild(iw);row.appendChild(inf);row.appendChild(ob);
+
+  // Long press
+  let pt;
+  row.addEventListener('touchstart',()=>{pt=setTimeout(()=>{lpApp=app;showAppSheet(isC);},520);},{passive:true});
+  row.addEventListener('touchend',()=>clearTimeout(pt));
+  row.addEventListener('touchmove',()=>clearTimeout(pt));
+  return row;
+}
+
+document.getElementById('homeCats').addEventListener('click',e=>{
+  const p=e.target.closest('.cpill');if(!p)return;
+  document.querySelectorAll('.cpill').forEach(x=>x.classList.remove('on'));
+  p.classList.add('on');activeCat=p.dataset.cat;renderHome();
+});
+
+// ─── BROWSER ────────────────────────────────────────────────────────────────
+function openBrow(app){
+  curUrl=app.url;
+  const ov=document.getElementById('brow');
+  const fr=document.getElementById('browIframe');
+  const bl=document.getElementById('browBlocked');
+  const ld=document.getElementById('browLoad');
+  document.getElementById('browUrl').textContent=app.name+' · '+app.url.replace('https://','').replace(/\/$/,'');
+
+  bl.classList.remove('show');
+  fr.src='';
+  ld.style.transition='none';ld.style.width='0%';
+  setTimeout(()=>{ld.style.transition='width 1.6s ease';ld.style.width='65%';fr.src=app.url;},30);
+
+  // Blocked detection
+  let blocked=false;
+  const t=setTimeout(()=>{
+    try{if(fr.contentDocument===null&&!blocked){blocked=true;bl.classList.add('show');}}catch(e){}
+  },6000);
+
+  fr.onload=()=>{
+    clearTimeout(t);
+    ld.style.transition='width .25s';ld.style.width='100%';
+    setTimeout(()=>{ld.style.transition='none';ld.style.width='0%';},350);
+    try{if(fr.contentWindow.location.href==='about:blank'){blocked=true;bl.classList.add('show');}}catch(e){}
+  };
+  fr.onerror=()=>{clearTimeout(t);blocked=true;bl.classList.add('show');};
+
+  ov.classList.add('open');
+
+  // Recent
+  recent=[app.id,...recent.filter(x=>x!==app.id)].slice(0,30);
+  save();
+}
+
+function closeBrow(){
+  document.getElementById('brow').classList.remove('open');
+  setTimeout(()=>{
+    document.getElementById('browIframe').src='';
+    document.getElementById('browBlocked').classList.remove('show');
+  },420);
+}
+
+document.getElementById('browClose').addEventListener('click',closeBrow);
+document.getElementById('browBack').addEventListener('click',()=>{
+  try{document.getElementById('browIframe').contentWindow.history.back();}
+  catch(e){closeBrow();}
+});
+document.getElementById('bbOpen').addEventListener('click',()=>{
+  window.open(curUrl,'_blank','noopener,noreferrer');
+});
+
+// Swipe back from left edge
+let sx=0,sy=0;
+const browEl=document.getElementById('brow');
+const swE=document.getElementById('swipeEdge');
+browEl.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+browEl.addEventListener('touchmove',e=>{
+  const dx=e.touches[0].clientX-sx,dy=Math.abs(e.touches[0].clientY-sy);
+  if(sx<28&&dx>0&&dy<80){
+    const p=Math.min(dx/100,1);
+    swE.style.opacity=p*.7;swE.style.height=(40+p*40)+'px';
+  }
+},{passive:true});
+browEl.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-sx;
+  swE.style.opacity=0;swE.style.height='50px';
+  if(sx<28&&dx>75)closeBrow();
+},{passive:true});
+
+// ─── SEARCH ─────────────────────────────────────────────────────────────────
+document.getElementById('srchCancel').addEventListener('click',()=>{
+  document.getElementById('srchInput').value='';
+  renderSrch('');go('homeScreen');
+});
+document.getElementById('srchInput').addEventListener('input',e=>renderSrch(e.target.value.trim()));
+document.getElementById('srchInput').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const q=e.target.value.trim();if(!q)return;
+  const eng=ENGINES.find(x=>x.id===engine)||ENGINES[0];
+  const isUrl=q.startsWith('http')||(/^[\w-]+\.[a-z]{2,}/.test(q)&&!q.includes(' '));
+  const url=isUrl?(q.startsWith('http')?q:'https://'+q):eng.url+encodeURIComponent(q);
+  openBrow({name:isUrl?q:eng.name,desc:'',url,color:'#555'});
+});
+
+function renderSrch(q){
+  const c=document.getElementById('srchResults');c.innerHTML='';
+  if(!q)return;
+  const eng=ENGINES.find(x=>x.id===engine)||ENGINES[0];
+  const isUrl=q.startsWith('http')||(/^[\w-]+\.[a-z]{2,}/.test(q)&&!q.includes(' '));
+
+  // Web search row
+  const ws=document.createElement('div');ws.className='ws-row';
+  ws.innerHTML=`<div class="ws-ico"><svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><div><div class="ws-lbl">${isUrl?'Open URL':'Search on '+eng.name}</div><div class="ws-q">${q}</div></div>`;
+  ws.addEventListener('click',()=>{
+    const url=isUrl?(q.startsWith('http')?q:'https://'+q):eng.url+encodeURIComponent(q);
+    openBrow({name:isUrl?q:eng.name,desc:'',url,color:'#555'});
+  });
+  c.appendChild(ws);
+
+  // App matches
+  apps().filter(a=>a.name.toLowerCase().includes(q.toLowerCase())||a.url.includes(q.toLowerCase())).forEach(app=>{
+    const r=document.createElement('div');r.className='sr-row';
+    r.innerHTML=`<div class="sr-ico" style="background:${app.color}1a"><img src="${logo(app.url)}" alt="" data-fb="${logo2(app.url)}" onerror="if(!this._t){this._t=true;this.src=this.dataset.fb;}else{this.style.display='none';}"/></div><div><div class="sr-name">${app.name}</div><div class="sr-url">${app.url.replace('https://','')}</div></div>`;
+    r.addEventListener('click',()=>openBrow(app));
+    c.appendChild(r);
+  });
+}
+
+function renderEngRow(){
+  const r=document.getElementById('engRow');r.innerHTML='';
+  ENGINES.forEach(e=>{
+    const p=document.createElement('div');p.className='epill'+(e.id===engine?' on':'');
+    p.textContent=e.name;
+    p.addEventListener('click',()=>{engine=e.id;save();renderEngRow();renderSettings();});
+    r.appendChild(p);
+  });
+}
+
+// ─── GROUPS ─────────────────────────────────────────────────────────────────
+function renderGroups(){
+  const g=document.getElementById('folderGrid');g.innerHTML='';
+  const entries=Object.entries(groups);
+  if(!entries.length){
+    g.innerHTML='<div class="groups-empty">Long-press any app on Home to create a group</div>';return;
+  }
+  entries.forEach(([gn,ids])=>{
+    const ga=apps().filter(a=>ids.includes(a.id));
+    const card=document.createElement('div');card.className='folder-card';
+    let prev='<div class="folder-preview">';
+    for(let i=0;i<4;i++){
+      if(ga[i])prev+=`<img class="fp-img" src="${logo(ga[i].url)}" data-fb="${logo2(ga[i].url)}" onerror="if(!this._t){this._t=true;this.src=this.dataset.fb;}else{this.style.opacity='0';}"/>`;
+      else prev+='<div class="fp-empty"></div>';
+    }
+    prev+='</div>';
+    card.innerHTML=`${prev}<div class="folder-lbl">${gn}</div><div class="folder-cnt">${ga.length} app${ga.length!==1?'s':''}</div>`;
+    let pt;
+    card.addEventListener('touchstart',()=>{pt=setTimeout(()=>grpActions(gn),600);},{passive:true});
+    card.addEventListener('touchend',()=>clearTimeout(pt));
+    card.addEventListener('touchmove',()=>clearTimeout(pt));
+    card.addEventListener('click',()=>{go('homeScreen');});
+    g.appendChild(card);
+  });
+}
+
+function grpActions(gn){
+  openNm('Rename Group',gn,name=>{
+    if(name&&name!==gn){groups[name]=groups[gn];delete groups[gn];save();renderGroups();}
+  });
+}
+
+document.getElementById('newGrpBtn').addEventListener('click',()=>{
+  openNm('New Group','',name=>{
+    if(name){groups[name]=groups[name]||[];save();renderGroups();}
+  });
+});
+
+// ─── SETTINGS ───────────────────────────────────────────────────────────────
+function renderSettings(){
+  const c=document.getElementById('engCard');c.innerHTML='';
+  ENGINES.forEach(e=>{
+    const r=document.createElement('div');r.className='stg-row';
+    r.innerHTML=`<span class="stg-row-lbl">${e.name}</span>${engine===e.id?'<svg width="18" height="18" fill="none" stroke="var(--accent)" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>':''}`;
+    r.addEventListener('click',()=>{engine=e.id;save();renderSettings();renderEngRow();toast(e.name+' set as default');});
+    c.appendChild(r);
+  });
+}
+
+document.getElementById('addAppRow').addEventListener('click',()=>{
+  openNm('App Name','',name=>{
+    if(!name)return;
+    openNm('Enter URL','https://',url=>{
+      if(!url)return;
+      if(!url.startsWith('http'))url='https://'+url;
+      try{
+        new URL(url);
+        const a={id:'c_'+Date.now(),name,desc:url.replace('https://',''),url,cat:'productivity',color:'#7c6cff',custom:true};
+        custom.push(a);save();renderHome();toast(name+' added');
+      }catch(e){toast('Invalid URL');}
+    });
+  });
+});
+
+document.getElementById('clearRecentRow').addEventListener('click',()=>{recent=[];save();toast('Recent cleared');});
+
+// ─── APP SHEET ──────────────────────────────────────────────────────────────
+function showAppSheet(isC){
+  document.getElementById('sheetTitle').textContent=lpApp?.name||'';
+  document.getElementById('sRemove').style.display=isC?'flex':'none';
+  document.getElementById('appSheet').classList.add('open');
+}
+function closeSheet(id){document.getElementById(id).classList.remove('open');}
+
+document.getElementById('sOpen').addEventListener('click',()=>{closeSheet('appSheet');if(lpApp)openBrow(lpApp);});
+document.getElementById('sGroup').addEventListener('click',()=>{closeSheet('appSheet');showGrpPicker();});
+document.getElementById('sRemove').addEventListener('click',()=>{
+  closeSheet('appSheet');
+  if(lpApp){custom=custom.filter(a=>a.id!==lpApp.id);save();renderHome();toast(lpApp.name+' removed');}
+});
+document.getElementById('sheetClose').addEventListener('click',()=>closeSheet('appSheet'));
+document.getElementById('appSheet').addEventListener('click',e=>{if(e.target.id==='appSheet')closeSheet('appSheet');});
+document.getElementById('grpClose').addEventListener('click',()=>closeSheet('grpSheet'));
+document.getElementById('grpSheet').addEventListener('click',e=>{if(e.target.id==='grpSheet')closeSheet('grpSheet');});
+
+function showGrpPicker(){
+  const c=document.getElementById('grpActs');c.innerHTML='';
+  const gns=Object.keys(groups);
+
+  const newDiv=document.createElement('div');newDiv.className='sact';
+  newDiv.innerHTML=`<svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Group`;
+  newDiv.addEventListener('click',()=>{
+    closeSheet('grpSheet');
+    openNm('Group Name','',name=>{
+      if(name&&lpApp){groups[name]=[lpApp.id];save();renderHome();toast('Added to "'+name+'"');}
+    });
+  });
+  c.appendChild(newDiv);
+
+  gns.forEach(gn=>{
+    const d=document.createElement('div');d.className='sact';d.textContent=gn;
+    d.addEventListener('click',()=>{
+      if(lpApp){
+        if(!groups[gn].includes(lpApp.id)){groups[gn].push(lpApp.id);save();renderHome();toast('Added to "'+gn+'"');}
+        else toast('Already in this group');
+      }
+      closeSheet('grpSheet');
+    });
+    c.appendChild(d);
+  });
+
+  document.getElementById('grpSheet').classList.add('open');
+}
+
+// ─── NAME MODAL ─────────────────────────────────────────────────────────────
+function openNm(title,def,cb){
+  nmCb=cb;
+  document.getElementById('nmTitle').textContent=title;
+  const inp=document.getElementById('nmInp');
+  inp.value=def||'';inp.type=title.toLowerCase().includes('url')?'url':'text';
+  inp.placeholder=title.toLowerCase().includes('url')?'https://example.com':'Enter name...';
+  document.getElementById('nmOv').classList.add('open');
+  setTimeout(()=>{inp.focus();if(!def)return;inp.setSelectionRange(def.length,def.length);},200);
+}
+function closeNm(){document.getElementById('nmOv').classList.remove('open');nmCb=null;}
+document.getElementById('nmSave').addEventListener('click',()=>{
+  const v=document.getElementById('nmInp').value.trim();
+  closeNm();if(nmCb){const c=nmCb;nmCb=null;c(v);}
+});
+document.getElementById('nmCancel').addEventListener('click',closeNm);
+document.getElementById('nmInp').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('nmSave').click();});
+
+// ─── PWA MANIFEST ────────────────────────────────────────────────────────────
+const MF={
+  name:'WebHub',short_name:'WebHub',
+  description:'Your personal web launcher & browser',
+  start_url:'.',display:'standalone',
+  background_color:'#111111',theme_color:'#111111',
+  orientation:'portrait-primary',
+  // ICON NOTE: Replace the icons array below with your own before pushing to GitHub.
+  // Add icon-192.png and icon-512.png to your repo root, then use:
+  // icons:[{src:'icon-192.png',sizes:'192x192',type:'image/png'},{src:'icon-512.png',sizes:'512x512',type:'image/png',purpose:'any maskable'}]
+  icons:[{
+    src:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23111'/%3E%3Crect x='90' y='90' width='148' height='148' rx='28' fill='%230a84ff'/%3E%3Crect x='274' y='90' width='148' height='148' rx='28' fill='%230a84ff' opacity='.55'/%3E%3Crect x='90' y='274' width='148' height='148' rx='28' fill='%230a84ff' opacity='.55'/%3E%3Crect x='274' y='274' width='148' height='148' rx='28' fill='%230a84ff'/%3E%3C/svg%3E",
+    sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'
+  }]
+};
+const mfB=new Blob([JSON.stringify(MF)],{type:'application/manifest+json'});
+const mfL=document.createElement('link');mfL.rel='manifest';mfL.href=URL.createObjectURL(mfB);
+document.head.appendChild(mfL);
+
+// ─── SERVICE WORKER ──────────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  const SW=`const C='wh1';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['./']).catch(()=>{})).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.mode==='navigate')e.respondWith(fetch(e.request).catch(()=>caches.match('./')));});`;
+  navigator.serviceWorker.register(URL.createObjectURL(new Blob([SW],{type:'application/javascript'})),{scope:'./'}).catch(()=>{});
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderHome();
+renderEngRow();
+renderSettings();
+</script>
+</body>
+</html>
