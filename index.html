@@ -10,6 +10,7 @@
 <meta name="theme-color" media="(prefers-color-scheme:dark)" content="#111111"/>
 <meta name="theme-color" media="(prefers-color-scheme:light)" content="#f2f2f7"/>
 <title>WebHub</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap"/>
 <style>
@@ -222,7 +223,7 @@ body{overflow:hidden;}
 .nbtn{
   display:flex;flex-direction:column;align-items:center;gap:3px;
   border:none;background:none;font-family:'Figtree',sans-serif;
-  color:var(--text2);cursor:pointer;padding:4px 18px;transition:color .15s;
+  color:var(--text2);cursor:pointer;padding:4px 12px;transition:color .15s;
 }
 .nbtn.on{color:var(--accent);}
 .nbtn svg{transition:transform .22s cubic-bezier(.34,1.56,.64,1);}
@@ -376,6 +377,57 @@ body{overflow:hidden;}
   transition:opacity .2s,transform .2s;z-index:999;white-space:nowrap;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* ── MAKE APP SCREEN ── */
+.mk-head{padding:2px 18px 18px;}
+.mk-title{font-size:28px;font-weight:700;letter-spacing:-.5px;}
+.mk-sub{font-size:13px;color:var(--text2);margin-top:4px;line-height:1.5;}
+.mk-form{padding:0 12px;}
+.mk-field{margin-bottom:14px;}
+.mk-label{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);margin-bottom:7px;display:block;}
+.mk-inp{
+  width:100%;background:var(--glass-l);border:1px solid var(--sep);
+  border-radius:13px;padding:13px 14px;
+  color:var(--text);font-size:15px;font-family:'Figtree',sans-serif;
+  outline:none;transition:border-color .15s;
+}
+.mk-inp:focus{border-color:var(--accent);}
+.mk-inp::placeholder{color:var(--text2);}
+.mk-color-row{display:flex;align-items:center;gap:10px;}
+.mk-color-inp{
+  width:52px;height:46px;border-radius:11px;border:1px solid var(--sep);
+  background:var(--glass-l);cursor:pointer;padding:4px;
+}
+.mk-color-val{font-size:14px;color:var(--text2);font-family:'Figtree',sans-serif;}
+.mk-pallete{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+.mk-swatch{width:28px;height:28px;border-radius:8px;cursor:pointer;transition:transform .12s;border:2px solid transparent;}
+.mk-swatch:active{transform:scale(.88);}
+.mk-swatch.sel{border-color:var(--text);}
+.mk-gen-btn{
+  width:100%;padding:16px;border-radius:15px;border:none;
+  background:var(--accent);color:#fff;
+  font-size:16px;font-weight:700;font-family:'Figtree',sans-serif;
+  cursor:pointer;margin-top:6px;transition:opacity .15s,transform .12s;
+}
+.mk-gen-btn:active{opacity:.8;transform:scale(.97);}
+.mk-gen-btn:disabled{opacity:.4;pointer-events:none;}
+.mk-result{
+  margin:18px 12px 0;background:var(--glass-l);
+  border:1px solid var(--sep);border-radius:18px;padding:20px;
+  display:none;
+}
+.mk-result.show{display:block;}
+.mk-res-title{font-size:15px;font-weight:700;margin-bottom:6px;}
+.mk-res-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px;}
+.mk-dl-btn{
+  width:100%;padding:14px;border-radius:13px;border:none;
+  background:rgba(48,209,88,.15);color:#30d158;
+  font-size:15px;font-weight:700;font-family:'Figtree',sans-serif;
+  cursor:pointer;transition:background .15s;margin-bottom:10px;
+}
+.mk-dl-btn:active{background:rgba(48,209,88,.25);}
+.mk-steps{font-size:12px;color:var(--text2);line-height:1.8;padding-left:2px;}
+.mk-steps b{color:var(--text);}
+.mk-steps a{color:var(--accent);text-decoration:none;}
 </style>
 </head>
 <body>
@@ -448,6 +500,48 @@ body{overflow:hidden;}
   </div>
 </div>
 
+<!-- MAKE APP -->
+<div id="makeScreen" class="screen off">
+  <div class="mk-head">
+    <div class="mk-title">Make App</div>
+    <div class="mk-sub">Turn any website into an installable app — ChatGPT, YouTube, Facebook, anything.</div>
+  </div>
+  <div class="mk-form">
+    <div class="mk-field">
+      <label class="mk-label">Website URL</label>
+      <input class="mk-inp" id="mkUrl" type="url" placeholder="https://chatgpt.com" autocomplete="off"/>
+    </div>
+    <div class="mk-field">
+      <label class="mk-label">App Name</label>
+      <input class="mk-inp" id="mkName" type="text" placeholder="e.g. ChatGPT" maxlength="30"/>
+    </div>
+    <div class="mk-field">
+      <label class="mk-label">Short Name (home screen)</label>
+      <input class="mk-inp" id="mkShort" type="text" placeholder="e.g. GPT" maxlength="12"/>
+    </div>
+    <div class="mk-field">
+      <label class="mk-label">Theme Color</label>
+      <div class="mk-color-row">
+        <input class="mk-color-inp" id="mkColor" type="color" value="#0a84ff"/>
+        <span class="mk-color-val" id="mkColorVal">#0a84ff</span>
+      </div>
+      <div class="mk-pallete" id="mkPallete"></div>
+    </div>
+    <button class="mk-gen-btn" id="mkGenBtn">Generate App Package</button>
+  </div>
+  <div class="mk-result" id="mkResult">
+    <div class="mk-res-title">✅ Your app package is ready!</div>
+    <div class="mk-res-desc" id="mkResDesc"></div>
+    <button class="mk-dl-btn" id="mkDlBtn">⬇ Download ZIP</button>
+    <div class="mk-steps">
+      <b>How to install (3 steps):</b><br>
+      1. Extract the ZIP &amp; drag the folder to <a href="https://netlify.com/drop" target="_blank">netlify.com/drop</a><br>
+      2. You'll get a free URL like <b>yourapp.netlify.app</b><br>
+      3. Open that URL on your phone → <b>Share → Add to Home Screen</b> 📱
+    </div>
+  </div>
+</div>
+
 <!-- Bottom Nav -->
 <nav class="bnav">
   <button class="nbtn on" data-s="homeScreen">
@@ -465,6 +559,10 @@ body{overflow:hidden;}
   <button class="nbtn" data-s="settingsScreen">
     <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     <span class="nbtn-lbl">Settings</span>
+  </button>
+  <button class="nbtn" data-s="makeScreen">
+    <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>
+    <span class="nbtn-lbl">Make App</span>
   </button>
 </nav>
 
@@ -981,6 +1079,163 @@ if('serviceWorker' in navigator){
   const SW=`const C='wh1';self.addEventListener('install',e=>e.waitUntil(caches.open(C).then(c=>c.addAll(['./']).catch(()=>{})).then(()=>self.skipWaiting())));self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==C).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));self.addEventListener('fetch',e=>{if(e.request.mode==='navigate')e.respondWith(fetch(e.request).catch(()=>caches.match('./')));});`;
   navigator.serviceWorker.register(URL.createObjectURL(new Blob([SW],{type:'application/javascript'})),{scope:'./'}).catch(()=>{});
 }
+
+// ─── MAKE APP ────────────────────────────────────────────────────────────────
+const SWATCHES = ['#0a84ff','#30d158','#ff453a','#ff9f0a','#bf5af2','#ff375f','#64d2ff','#25D366','#000000','#ffffff'];
+let mkZipBlob = null;
+
+(function initMakeApp(){
+  const pallete = document.getElementById('mkPallete');
+  const colorInp = document.getElementById('mkColor');
+  const colorVal = document.getElementById('mkColorVal');
+
+  SWATCHES.forEach(c => {
+    const s = document.createElement('div');
+    s.className = 'mk-swatch' + (c === '#0a84ff' ? ' sel' : '');
+    s.style.background = c;
+    s.style.border = c === '#ffffff' ? '2px solid var(--sep)' : '';
+    s.addEventListener('click', () => {
+      document.querySelectorAll('.mk-swatch').forEach(x => x.classList.remove('sel'));
+      s.classList.add('sel');
+      colorInp.value = c;
+      colorVal.textContent = c;
+    });
+    pallete.appendChild(s);
+  });
+
+  colorInp.addEventListener('input', () => {
+    colorVal.textContent = colorInp.value;
+    document.querySelectorAll('.mk-swatch').forEach(x => x.classList.remove('sel'));
+  });
+
+  document.getElementById('mkGenBtn').addEventListener('click', async () => {
+    let url = document.getElementById('mkUrl').value.trim();
+    const name = document.getElementById('mkName').value.trim();
+    const short = document.getElementById('mkShort').value.trim() || name.slice(0,12);
+    const color = document.getElementById('mkColor').value;
+
+    if (!url) { toast('Enter a website URL'); return; }
+    if (!name) { toast('Enter an app name'); return; }
+    if (!url.startsWith('http')) url = 'https://' + url;
+
+    try { new URL(url); } catch(e) { toast('Invalid URL'); return; }
+
+    const btn = document.getElementById('mkGenBtn');
+    btn.disabled = true; btn.textContent = 'Building...';
+
+    try {
+      const domain = new URL(url).hostname;
+      const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=512`;
+
+      const manifestJson = JSON.stringify({
+        name, short_name: short,
+        description: `${name} — installed as an app`,
+        start_url: './',
+        scope: './',
+        display: 'standalone',
+        orientation: 'portrait',
+        background_color: color,
+        theme_color: color,
+        icons: [
+          { src: 'icon.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: 'icon.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+        ]
+      }, null, 2);
+
+      const swJs = `const CACHE='${name.replace(/\s/g,'')}-v1';
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./'])).then(()=>self.skipWaiting())));
+self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
+self.addEventListener('fetch',e=>{if(e.request.mode==='navigate')e.respondWith(fetch(e.request).catch(()=>caches.match('./')));});`;
+
+      const indexHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="${short}"/>
+<meta name="theme-color" content="${color}"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon.png"/>
+<title>${name}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;background:${color};}
+body{display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:sans-serif;}
+.logo{width:80px;height:80px;border-radius:20px;margin-bottom:16px;background:rgba(255,255,255,.15);}
+p{color:rgba(255,255,255,.8);font-size:14px;}
+</style>
+</head>
+<body>
+<img class="logo" src="icon.png" onerror="this.style.display='none'"/>
+<p>Opening ${name}...</p>
+<script>
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+setTimeout(()=>{ window.location.href='${url}'; },800);
+<\/script>
+</body>
+</html>`;
+
+      const readme = `HOW TO INSTALL "${name}" AS AN APP
+=====================================
+
+1. Go to https://app.netlify.com/drop
+2. Drag this entire folder onto the page
+3. Netlify gives you a free URL like: your-app.netlify.app
+4. Open that URL on your iPhone or Android phone
+5. Tap Share (iPhone) or Menu (Android) → "Add to Home Screen"
+6. Done! ${name} is now installed as an app on your phone 🎉
+
+WHAT'S INSIDE
+- index.html  : App launcher (redirects to ${url})
+- manifest.json: Makes this a PWA
+- sw.js       : Service worker for offline support
+- icon.png    : App icon (fetched from ${domain})
+
+TIP: You can also deploy to Vercel (vercel.com) or GitHub Pages for free.`;
+
+      const zip = new JSZip();
+      const folder = zip.folder(name.replace(/[^a-zA-Z0-9]/g,'-'));
+      folder.file('index.html', indexHtml);
+      folder.file('manifest.json', manifestJson);
+      folder.file('sw.js', swJs);
+      folder.file('README.txt', readme);
+
+      // Try to fetch the favicon/icon
+      try {
+        const iconRes = await fetch(faviconUrl);
+        if (iconRes.ok) {
+          const iconBlob = await iconRes.arrayBuffer();
+          folder.file('icon.png', iconBlob);
+        }
+      } catch(e) {}
+
+      mkZipBlob = await zip.generateAsync({ type: 'blob' });
+
+      document.getElementById('mkResDesc').textContent =
+        `"${name}" package created. Deploy the ZIP to Netlify Drop (free, takes 30 seconds) and add it to your home screen.`;
+      document.getElementById('mkResult').classList.add('show');
+      toast('Package ready!');
+    } catch(e) {
+      toast('Something went wrong. Try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Generate App Package';
+    }
+  });
+
+  document.getElementById('mkDlBtn').addEventListener('click', () => {
+    if (!mkZipBlob) return;
+    const name = document.getElementById('mkName').value.trim() || 'myapp';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(mkZipBlob);
+    a.download = name.replace(/[^a-zA-Z0-9]/g,'-') + '-pwa.zip';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    toast('Downloading...');
+  });
+})();
 
 // ─── INIT ────────────────────────────────────────────────────────────────────
 renderHome();
